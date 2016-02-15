@@ -1,9 +1,50 @@
+/**
+ * A runtime type, allowing type detection and casting
+ * of unknown types at runtime.
+ */
 export abstract class Type<T> {
 
+    /**
+     * Returns the human-readable name of this `Type`.
+     *
+     * ```
+     * stringType.getName();  // => "string"
+     * ```
+     */
     public abstract getName(): string;
 
+    /**
+     * A type guard for this `Type`. If it passes, then
+     * `value` is of this type.
+     *
+     * ```
+     * if (stringType.isTypeOf(value)) {
+     *     // Within this block, value is of type `string`.
+     * }
+     * ```
+     */
     public abstract isTypeOf(value: Object): value is T;
 
+    /**
+     * Attempts to cast `value` to this `Type`.
+     *
+     * If `value` is `undefined`, and `defaultValue` is given,
+     * `defaultValue` is returned.
+     *
+     * If `value` is not the correct type, a `TypeError` is raised.
+     *
+     * ```
+     * try {
+     *     const value: string = stringType.from(value, "defaultValue");
+     * } catch (ex) {
+     *     if (ex instanceof TypeError) {
+     *         // Do with the TypeError.
+     *     } else {
+     *         // Handle unexpected errors.
+     *     }
+     * }
+     * ```
+     */
     public from(value: Object, defaultValue?: T): T {
         if (value === undefined && defaultValue !== undefined) {
             return defaultValue;
@@ -35,10 +76,31 @@ class PrimitiveType<T> extends Type<T> {
 
 }
 
+/**
+ * A `Type` representing the primitive `string` type.
+ *
+ * ```
+ * stringType.isTypeOf("foo");  // => true
+ * ```
+ */
 export const stringType: Type<string> = new PrimitiveType<string>("string");
 
+/**
+ * A `Type` representing the primitive `number` type.
+ *
+ * ```
+ * numberType.isTypeOf(1);  // => true
+ * ```
+ */
 export const numberType: Type<number> = new PrimitiveType<number>("number");
 
+/**
+ * A `Type` representing the primitive `boolean` type.
+ *
+ * ```
+ * booleanType.isTypeOf(true);  // => true
+ * ```
+ */
 export const booleanType: Type<boolean> = new PrimitiveType<boolean>("boolean");
 
 
@@ -60,6 +122,16 @@ class NullableOf<T> extends Type<T> {
 
 }
 
+/**
+ * Wraps another `Type` allowing it to accept `null` values
+ * in addition to it's expected type.
+ *
+ * ```
+ * nullableOf(stringType).isTypeOf(null);  // => true
+ * nullableOf(stringType).isTypeOf("foo");  // => true
+ * nullableOf(stringType).isTypeOf(undefined);  // => false
+ * ```
+ */
 export function nullableOf<T>(type: Type<T>): Type<T> {
     return new NullableOf(type);
 }
@@ -69,22 +141,29 @@ export function nullableOf<T>(type: Type<T>): Type<T> {
 
 class ArrayOf<T> extends Type<Array<T>> {
 
-    constructor(private type: Type<T>) {
+    constructor(private valueType: Type<T>) {
         super();
     }
 
     public getName(): string {
-        return `Array<${this.type.getName()}>`;
+        return `Array<${this.valueType.getName()}>`;
     }
 
     public isTypeOf(value: Object): value is Array<T> {
-        return Array.isArray(value) && value.every((item: T) => this.type.isTypeOf(item));
+        return Array.isArray(value) && value.every((item: T) => this.valueType.isTypeOf(item));
     }
 
 }
 
-export function arrayOf<T>(type: Type<T>): Type<Array<T>> {
-    return new ArrayOf(type);
+/**
+ * Returns a `Type` representing an `Array` of `valueType`.
+ *
+ * ```
+ * arrayOf(numberType).isTypeOf([5]);  // => true
+ * ```
+ */
+export function arrayOf<T>(valueType: Type<T>): Type<Array<T>> {
+    return new ArrayOf(valueType);
 }
 
 
@@ -111,24 +190,32 @@ function every<T>(value: {[key: string]: T}, callback: (value: T, key: string) =
 
 class ObjectOf<T> extends Type<{[key: string]: T}> {
 
-    constructor(private type: Type<T>) {
+    constructor(private valueType: Type<T>) {
         super();
     }
 
     public getName(): string {
-        return `Object<${this.type.getName()}>`;
+        return `Object<${this.valueType.getName()}>`;
     }
 
     public isTypeOf(value: Object): value is {[key: string]: T} {
         return isPlainObject(value) && every(value, (v: T) => {
-            return this.type.isTypeOf(v);
+            return this.valueType.isTypeOf(v);
         });
     }
 
 }
 
-export function objectOf<T>(type: Type<T>): Type<{[key: string]: T}> {
-    return new ObjectOf(type);
+/**
+ * Returns a `Type` representing an `Object` where every
+ * value is of `valueType`.
+ *
+ * ```
+ * objectOf(numberType).isTypeOf({foo: 5});  // => true
+ * ```
+ */
+export function objectOf<T>(valueType: Type<T>): Type<{[key: string]: T}> {
+    return new ObjectOf(valueType);
 }
 
 
@@ -150,6 +237,13 @@ class TupleOf extends Type<Array<any>> {
 
 }
 
+/**
+ * Returns a `Type` representing a heterogenous `Array` of `types`.
+ *
+ * ```
+ * tupleOf([numberType, stringType]).isTypeOf([1, "foo"]);  // => true
+ * ```
+ */
 export function tupleOf<A>(types: [Type<A>]): Type<[A]>;
 export function tupleOf<A, B>(types: [Type<A>, Type<B>]): Type<[A, B]>;
 export function tupleOf<A, B, C>(types: [Type<A>, Type<B>, Type<C>]): Type<[A, B, C]>;
@@ -178,6 +272,19 @@ class ShapeOf extends Type<{[key: string]: any}> {
 
 }
 
+/**
+ * Returns a `Type` representing a heterogenous `Object` of `types`.
+ *
+ * ```
+ * shapeOf({
+ *     foo: numberType,
+ *     bar: stringType,
+ * }).isTypeOf({
+ *     foo: 1,
+ *     bar: "bar",
+ * });  // => true
+ * ```
+ */
 export function shapeOf(types: {[key: string]: Type<any>}): Type<{[key: string]: any}> {
     return new ShapeOf(types);
 }
