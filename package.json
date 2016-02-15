@@ -2,17 +2,18 @@
   "name": "@etianen/types",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.js",
+  "main": "./lib/index.js",
   "scripts": {
     "postinstall": "tsd install",
     "build": "tsc --declaration",
     "pretest": "npm run build",
     "test": "mocha --require source-map-support/register",
-    "lint": "tslint lib/*.ts test/*.ts",
+    "lint": "tslint ./lib/*[^d].ts ./test/*[^d].ts",
     "prepublish": "npm run build"
   },
   "author": "Dave Hall <dave@etianen.com> (http://www.etianen.com/)",
   "license": "ISC",
+  "typings": "./lib/index.d.ts",
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.4.5",
