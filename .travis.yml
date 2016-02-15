@@ -1,0 +1,22 @@
+language: node_js
+node_js:
+- 5.6
+cache:
+  directories:
+  - node_modules
+  - typings
+script:
+- npm test
+- npm run lint
+deploy:
+  provider: npm
+  email: dave@etianen.com
+  api_key:
+    secure: # TODO
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: etianen/types
+notifications:
+  on_success: never
+  on_failure: change
