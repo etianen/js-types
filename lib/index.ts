@@ -23,18 +23,22 @@ export abstract class Type<T> {
 
 }
 
+abstract class NamedType<T> extends Type<T> {
 
-// Primitive types.
-
-class PrimitiveType<T> extends Type<T> {
-
-    constructor(private name: string) {
+    constructor(protected name: string) {
         super();
     }
 
     public getName(): string {
         return this.name;
     }
+
+}
+
+
+// Primitive types.
+
+class PrimitiveType<T> extends NamedType<T> {
 
     public isTypeOf(value: Object): value is T {
         return typeof value === this.name;
@@ -49,26 +53,58 @@ export const numberType: Type<number> = new PrimitiveType<number>("number");
 export const booleanType: Type<boolean> = new PrimitiveType<boolean>("boolean");
 
 
-// Nullable types.
+// Constant types.
 
-class NullableOfType<T> extends Type<T> {
+class ConstantType<T> extends NamedType<T> {
 
-    constructor(private type: Type<T>) {
-        super();
-    }
-
-    public getName(): string {
-        return `${this.type.getName()}?`;
+    constructor(name: string, private constant: T) {
+        super(name);
     }
 
     public isTypeOf(value: Object): value is T {
-        return value === null || this.type.isTypeOf(value);
+        return value === this.constant;
     }
 
 }
 
+export const nullType: Type<Object> = new ConstantType<Object>("null", null);
+
+export const undefinedType: Type<Object> = new ConstantType<Object>("undefined", undefined);
+
+
+// Intersection types.
+
+class IntersectionOfType extends Type<any> {
+
+    constructor(private types: Array<Type<Object>>) {
+        super();
+    }
+
+    public getName(): string {
+        return this.types.map((type: Type<Object>) => type.getName()).join(" | ");
+    }
+
+    public isTypeOf(value: Object): value is any {
+        return this.types.some((type: Type<Object>) => type.isTypeOf(value));
+    }
+
+}
+
+export function intersectionOf<A>(a: Type<A>): Type<A>;
+export function intersectionOf<A, B>(a: Type<A>, b: Type<B>): Type<A | B>;
+export function intersectionOf<A, B, C>(a: Type<A>, b: Type<B>, v: Type<C>): Type<A | B | C>;
+export function intersectionOf<A, B, C, D>(a: Type<A>, b: Type<B>, c: Type<C>, d: Type<D>): Type<A | B | C | D>;
+export function intersectionOf<A, B, C, D, E>(a: Type<A>, b: Type<B>, c: Type<C>, d: Type<D>, e: Type<E>): Type<A | B | C | D | E>;
+export function intersectionOf(...types: Array<Type<Object>>): Type<any> {
+    return new IntersectionOfType(types);
+}
+
 export function nullableOf<T>(type: Type<T>): Type<T> {
-    return new NullableOfType(type);
+    return new IntersectionOfType([type, nullType]);
+}
+
+export function undefinedOf<T>(type: Type<T>): Type<T> {
+    return new IntersectionOfType([type, undefinedType]);
 }
 
 
@@ -134,7 +170,7 @@ export function objectOf<T>(valueType: Type<T>): Type<ObjectOf<T>> {
 
 // Heterogenous arrays.
 
-class TupleOf extends Type<Array<Object>> {
+class TupleOfType extends Type<Array<Object>> {
 
     constructor(private types: Array<Type<Object>>) {
         super();
@@ -156,13 +192,13 @@ export function tupleOf<A, B, C>(types: [Type<A>, Type<B>, Type<C>]): Type<[A, B
 export function tupleOf<A, B, C, D>(types: [Type<A>, Type<B>, Type<C>, Type<D>]): Type<[A, B, C, D]>;
 export function tupleOf<A, B, C, D, E>(types: [Type<A>, Type<B>, Type<C>, Type<D>, Type<E>]): Type<[A, B, C, D, E]>;
 export function tupleOf(types: Array<Type<Object>>): Type<Array<any>> {
-    return new TupleOf(types);
+    return new TupleOfType(types);
 }
 
 
 // Heterogenous objects.
 
-class ShapeOf extends Type<ObjectOf<Object>> {
+class ShapeOfType extends Type<ObjectOf<Object>> {
 
     constructor(private types: ObjectOf<Type<Object>>) {
         super();
@@ -189,5 +225,5 @@ class ShapeOf extends Type<ObjectOf<Object>> {
 }
 
 export function shapeOf(types: ObjectOf<Type<Object>>): Type<any> {
-    return new ShapeOf(types);
+    return new ShapeOfType(types);
 }

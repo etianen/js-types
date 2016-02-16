@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ObjectOf, Type, stringType, numberType, booleanType, nullableOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
+import {ObjectOf, Type, stringType, numberType, booleanType, intersectionOf, nullableOf, undefinedOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
 
 
 describe("types", () => {
@@ -77,12 +77,36 @@ describe("types", () => {
 
     });
 
+    describe("intersectionOf", () => {
+
+        const stringOrNumberType: Type<string | number> = intersectionOf(stringType, numberType);
+
+        it("passes values of any wrapped type", () => {
+            expect(stringOrNumberType.isTypeOf("foo")).to.be.true;
+            expect(stringOrNumberType.isTypeOf(5)).to.be.true;
+        });
+
+        it("fails values not of wrapped type", () => {
+            expect(stringOrNumberType.isTypeOf(true)).to.be.false;
+            expect(stringOrNumberType.isTypeOf({})).to.be.false;
+            expect(stringOrNumberType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(stringOrNumberType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(stringOrNumberType.isTypeOf(undefined)).to.be.false;
+        });
+
+    });
+
     describe("nullableOf", () => {
 
         const nullableStringType: Type<string> = nullableOf(stringType);
 
         it("passes values of wrapped type", () => {
-            expect(nullableStringType.isTypeOf("")).to.be.true;
             expect(nullableStringType.isTypeOf("foo")).to.be.true;
         });
 
@@ -99,6 +123,32 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(nullableStringType.isTypeOf(undefined)).to.be.false;
+        });
+
+    });
+
+    describe("undefinedOf", () => {
+
+        const undefinedStringType: Type<string> = undefinedOf(stringType);
+
+        it("passes values of wrapped type", () => {
+            expect(undefinedStringType.isTypeOf("")).to.be.true;
+            expect(undefinedStringType.isTypeOf("foo")).to.be.true;
+        });
+
+        it("fails values not of wrapped type", () => {
+            expect(undefinedStringType.isTypeOf(1)).to.be.false;
+            expect(undefinedStringType.isTypeOf(true)).to.be.false;
+            expect(undefinedStringType.isTypeOf({})).to.be.false;
+            expect(undefinedStringType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(undefinedStringType.isTypeOf(null)).to.be.false;
+        });
+
+        it("passes undefined", () => {
+            expect(undefinedStringType.isTypeOf(undefined)).to.be.true;
         });
 
     });
