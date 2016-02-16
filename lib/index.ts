@@ -18,16 +18,64 @@ export abstract class Type<T> {
         throw new TypeError(`Expected ${this.getName()}, received ${JSON.stringify(value)}`);
     }
 
+    public or<U>(type: Type<U>): Type<T | U> {
+        return new IntersectionOfType(this, type);
+    }
+
+    public orNull(): Type<T> {
+        return new OrNullType(this);
+    }
+
+    public orUndefined(): Type<T> {
+        return new OrUndefinedType(this);
+    }
+
 }
 
-abstract class NamedType<T> extends Type<T> {
+class IntersectionOfType<A, B> extends Type<A | B> {
 
-    constructor(protected name: string) {
+    constructor(private a: Type<A>, private b: Type<B>) {
         super();
     }
 
     public getName(): string {
-        return this.name;
+        return `${this.a.getName()} | ${this.b.getName()}`;
+    }
+
+    public isTypeOf(value: Object): value is A | B {
+        return this.a.isTypeOf(value) || this.b.isTypeOf(value);
+    }
+
+}
+
+class OrNullType<T> extends Type<T> {
+
+    constructor(private type: Type<T>) {
+        super();
+    }
+
+    public getName(): string {
+        return this.type.getName();
+    }
+
+    public isTypeOf(value: Object): value is T {
+        return value === null || this.type.isTypeOf(value);
+    }
+
+}
+
+class OrUndefinedType<T> extends Type<T> {
+
+    constructor(private type: Type<T>) {
+        super();
+    }
+
+    public getName(): string {
+        return `${this.type.getName()}?`;
+    }
+
+    public isTypeOf(value: Object): value is T {
+        return value === undefined || this.type.isTypeOf(value);
     }
 
 }
@@ -35,7 +83,15 @@ abstract class NamedType<T> extends Type<T> {
 
 // Primitive types.
 
-class PrimitiveType<T> extends NamedType<T> {
+class PrimitiveType<T> extends Type<T> {
+
+    constructor(private name: string) {
+        super();
+    }
+
+    public getName(): string {
+        return this.name;
+    }
 
     public isTypeOf(value: Object): value is T {
         return typeof value === this.name;
@@ -48,61 +104,6 @@ export const stringType: Type<string> = new PrimitiveType<string>("string");
 export const numberType: Type<number> = new PrimitiveType<number>("number");
 
 export const booleanType: Type<boolean> = new PrimitiveType<boolean>("boolean");
-
-
-// Constant types.
-
-class ConstantType<T> extends NamedType<T> {
-
-    constructor(name: string, private constant: T) {
-        super(name);
-    }
-
-    public isTypeOf(value: Object): value is T {
-        return value === this.constant;
-    }
-
-}
-
-export const nullType: Type<any> = new ConstantType<any>("null", null);
-
-export const undefinedType: Type<any> = new ConstantType<any>("undefined", undefined);
-
-
-// Intersection types.
-
-class IntersectionOfType extends Type<any> {
-
-    constructor(private types: Array<Type<Object>>) {
-        super();
-    }
-
-    public getName(): string {
-        return this.types.map((type: Type<Object>) => type.getName()).join(" | ");
-    }
-
-    public isTypeOf(value: Object): value is any {
-        return this.types.some((type: Type<Object>) => type.isTypeOf(value));
-    }
-
-}
-
-export function intersectionOf<A>(a: Type<A>): Type<A>;
-export function intersectionOf<A, B>(a: Type<A>, b: Type<B>): Type<A | B>;
-export function intersectionOf<A, B, C>(a: Type<A>, b: Type<B>, v: Type<C>): Type<A | B | C>;
-export function intersectionOf<A, B, C, D>(a: Type<A>, b: Type<B>, c: Type<C>, d: Type<D>): Type<A | B | C | D>;
-export function intersectionOf<A, B, C, D, E>(a: Type<A>, b: Type<B>, c: Type<C>, d: Type<D>, e: Type<E>): Type<A | B | C | D | E>;
-export function intersectionOf(...types: Array<Type<Object>>): Type<any> {
-    return new IntersectionOfType(types);
-}
-
-export function nullableOf<T>(type: Type<T>): Type<T> {
-    return new IntersectionOfType([type, nullType]);
-}
-
-export function undefinedOf<T>(type: Type<T>): Type<T> {
-    return new IntersectionOfType([type, undefinedType]);
-}
 
 
 // Homogenous arrays.
