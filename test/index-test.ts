@@ -335,40 +335,6 @@ describe("types", () => {
 
     describe("Type", () => {
 
-        describe(".withDefault()", () => {
-
-            const stringOrFoo: Type<string> = stringType.withDefault("foo");
-
-            it("has a descriptive name", () => {
-                expect(stringOrFoo.getName()).to.equal("string = \"foo\"");
-            });
-
-            it("passes values of wrapped type", () => {
-                expect(stringOrFoo.isTypeOf("")).to.be.true;
-                expect(stringOrFoo.isTypeOf("foo")).to.be.true;
-            });
-
-            it("fails values not of wrapped type", () => {
-                expect(stringOrFoo.isTypeOf(1)).to.be.false;
-                expect(stringOrFoo.isTypeOf(true)).to.be.false;
-                expect(stringOrFoo.isTypeOf({})).to.be.false;
-                expect(stringOrFoo.isTypeOf([])).to.be.false;
-            });
-
-            it("fails nulls", () => {
-                expect(stringOrFoo.isTypeOf(null)).to.be.false;
-            });
-
-            it("passes undefined", () => {
-                expect(stringOrFoo.isTypeOf(undefined)).to.be.true;
-            });
-
-            it("provides default value with from()", () => {
-                expect(stringOrFoo.from(undefined)).to.equal("foo");
-            });
-
-        });
-
         describe(".from()", () => {
 
             type Model = {id: number, name: string};
