@@ -67,9 +67,9 @@ class ConstantType<T> extends NamedType<T> {
 
 }
 
-export const nullType: Type<Object> = new ConstantType<Object>("null", null);
+export const nullType: Type<any> = new ConstantType<any>("null", null);
 
-export const undefinedType: Type<Object> = new ConstantType<Object>("undefined", undefined);
+export const undefinedType: Type<any> = new ConstantType<any>("undefined", undefined);
 
 
 // Intersection types.
