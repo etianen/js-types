@@ -219,7 +219,15 @@ class TupleOfType extends Type<Array<Object>> {
     }
 
     public isTypeOf(value: Object): value is Array<Object> {
-        return Array.isArray(value) && this.types.every((type: Type<Object>, index: number) => type.isTypeOf(value[index]));
+        if (Array.isArray(value)) {
+            for (let i = 0, l = this.types.length; i < l; i++) {
+                if (!this.types[i].isTypeOf(value[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
 }
