@@ -11,14 +11,15 @@ export abstract class Type<T> {
 
     public abstract isTypeOf(value: Object): value is T;
 
-    public from(value: Object, defaultValue?: T): T {
-        if (value === undefined && defaultValue !== undefined) {
-            return defaultValue;
-        }
+    public from(value: Object): T {
         if (this.isTypeOf(value)) {
             return value;
         }
-        throw new TypeError(`Expected ${this.getName()}, received ${value}`);
+        throw new TypeError(`Expected ${this.getName()}, received ${JSON.stringify(value)}`);
+    }
+
+    public withDefault(defaultValue: T): Type<T> {
+        return new TypeWithDefault(this, defaultValue);
     }
 
 }
@@ -226,4 +227,34 @@ class ShapeOfType extends Type<ObjectOf<Object>> {
 
 export function shapeOf(types: ObjectOf<Type<Object>>): Type<any> {
     return new ShapeOfType(types);
+}
+
+
+// Types with default.
+
+class TypeWithDefault<T> extends Type<T> {
+
+    constructor(private type: Type<T>, private defaultValue: T) {
+        super();
+    }
+
+    public getName(): string {
+        return `${this.type.getName()} = ${JSON.stringify(this.defaultValue)}`;
+    }
+
+    public isTypeOf(value: Object): value is T {
+        return value === undefined || this.type.isTypeOf(value);
+    }
+
+    public from(value: Object): T {
+        if (value === undefined) {
+            return this.defaultValue;
+        }
+        return super.from(value);
+    }
+
+    public withDefault(defaultValue: T): Type<T> {
+        return new TypeWithDefault(this.type, defaultValue);
+    }
+
 }
