@@ -159,7 +159,7 @@ class ArrayOfType<T> extends Type<Array<T>> {
     }
 
     public isTypeOf(value: Object): value is Array<T> {
-        return Array.isArray(value) && value.every((item: T) => this.valueType.isTypeOf(item));
+        return Array.isArray(value) && value.every(this.valueType.isTypeOf, this.valueType);
     }
 
 }
