@@ -144,7 +144,7 @@ class ObjectOfType<T> extends Type<ObjectOf<T>> {
     }
 
     public getName(): string {
-        return `Object<${this.valueType.getName()}>`;
+        return `ObjectOf<${this.valueType.getName()}>`;
     }
 
     public isTypeOf(value: Object): value is ObjectOf<T> {

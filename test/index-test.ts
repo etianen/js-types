@@ -6,6 +6,10 @@ describe("types", () => {
 
     describe("stringType", () => {
 
+        it("has a descriptive name", () => {
+            expect(stringType.getName()).to.equal("string");
+        });
+
         it("passes strings", () => {
             expect(stringType.isTypeOf("")).to.be.true;
             expect(stringType.isTypeOf("foo")).to.be.true;
@@ -29,6 +33,10 @@ describe("types", () => {
     });
 
     describe("numberType", () => {
+
+        it("has a descriptive name", () => {
+            expect(numberType.getName()).to.equal("number");
+        });
 
         it("passes numbers", () => {
             expect(numberType.isTypeOf(0)).to.be.true;
@@ -54,6 +62,10 @@ describe("types", () => {
     });
 
     describe("booleanType", () => {
+
+        it("has a descriptive name", () => {
+            expect(booleanType.getName()).to.equal("boolean");
+        });
 
         it("passes booleans", () => {
             expect(booleanType.isTypeOf(true)).to.be.true;
@@ -81,6 +93,10 @@ describe("types", () => {
 
         const stringOrNumberType: Type<string | number> = intersectionOf(stringType, numberType);
 
+        it("has a descriptive name", () => {
+            expect(stringOrNumberType.getName()).to.equal("string | number");
+        });
+
         it("passes values of any wrapped type", () => {
             expect(stringOrNumberType.isTypeOf("foo")).to.be.true;
             expect(stringOrNumberType.isTypeOf(5)).to.be.true;
@@ -105,6 +121,10 @@ describe("types", () => {
     describe("nullableOf", () => {
 
         const nullableStringType: Type<string> = nullableOf(stringType);
+
+        it("has a descriptive name", () => {
+            expect(nullableStringType.getName()).to.equal("string | null");
+        });
 
         it("passes values of wrapped type", () => {
             expect(nullableStringType.isTypeOf("foo")).to.be.true;
@@ -131,6 +151,10 @@ describe("types", () => {
 
         const undefinedStringType: Type<string> = undefinedOf(stringType);
 
+        it("has a descriptive name", () => {
+            expect(undefinedStringType.getName()).to.equal("string | undefined");
+        });
+
         it("passes values of wrapped type", () => {
             expect(undefinedStringType.isTypeOf("")).to.be.true;
             expect(undefinedStringType.isTypeOf("foo")).to.be.true;
@@ -156,6 +180,10 @@ describe("types", () => {
     describe("arrayOf", () => {
 
         const stringArrayType: Type<Array<string>> = arrayOf(stringType);
+
+        it("has a descriptive name", () => {
+            expect(stringArrayType.getName()).to.equal("Array<string>");
+        });
 
         it("passes arrays of value type", () => {
             expect(stringArrayType.isTypeOf(["foo"])).to.be.true;
@@ -190,6 +218,10 @@ describe("types", () => {
 
         const stringObjectType: Type<ObjectOf<string>> = objectOf(stringType);
 
+        it("has a descriptive name", () => {
+            expect(stringObjectType.getName()).to.equal("ObjectOf<string>");
+        });
+
         it("passes objects of value type", () => {
             expect(stringObjectType.isTypeOf({foo: "foo"})).to.be.true;
         });
@@ -222,6 +254,10 @@ describe("types", () => {
     describe("tupleOf", () => {
 
         const numberStringTupleType: Type<[number, string]> = tupleOf([numberType, stringType]);
+
+        it("has a descriptive name", () => {
+            expect(numberStringTupleType.getName()).to.equal("[number, string]");
+        });
 
         it("passes tuples of value types", () => {
             expect(numberStringTupleType.isTypeOf([1, "foo"])).to.be.true;
@@ -259,6 +295,10 @@ describe("types", () => {
     describe("shapeOf", () => {
 
         const numberStringShapeType: Type<{foo: number, bar: string}> = shapeOf({foo: numberType, bar: stringType});
+
+        it("has a descriptive name", () => {
+            expect(numberStringShapeType.getName()).to.equal("{foo: number, bar: string}");
+        });
 
         it("passes shapes of value type", () => {
             expect(numberStringShapeType.isTypeOf({foo: 1, bar: "bar"})).to.be.true;
