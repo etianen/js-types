@@ -1,4 +1,9 @@
-export type Dict<T> = {[key: string]: T};
+// Utility types.
+
+export type ObjectOf<T> = {[key: string]: T};
+
+
+// Runtime types.
 
 export abstract class Type<T> {
 
@@ -46,7 +51,7 @@ export const booleanType: Type<boolean> = new PrimitiveType<boolean>("boolean");
 
 // Nullable types.
 
-class NullableOf<T> extends Type<T> {
+class NullableOfType<T> extends Type<T> {
 
     constructor(private type: Type<T>) {
         super();
@@ -63,13 +68,13 @@ class NullableOf<T> extends Type<T> {
 }
 
 export function nullableOf<T>(type: Type<T>): Type<T> {
-    return new NullableOf(type);
+    return new NullableOfType(type);
 }
 
 
 // Homogenous arrays.
 
-class ArrayOf<T> extends Type<Array<T>> {
+class ArrayOfType<T> extends Type<Array<T>> {
 
     constructor(private valueType: Type<T>) {
         super();
@@ -86,32 +91,17 @@ class ArrayOf<T> extends Type<Array<T>> {
 }
 
 export function arrayOf<T>(valueType: Type<T>): Type<Array<T>> {
-    return new ArrayOf(valueType);
+    return new ArrayOfType(valueType);
 }
 
 
 // Homogonous objects.
 
-function isPlainObject(value: Object): value is Dict<Object> {
+function isPlainObject(value: Object): value is ObjectOf<Object> {
     return value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
 }
 
-function has(value: Object, key: string): boolean {
-    return Object.prototype.hasOwnProperty.call(value, key);
-}
-
-function every<T>(value: Dict<T>, callback: (value: T, key: string) => boolean): boolean {
-    for (const key in value) {
-        if (has(value, key)) {
-            if (!callback(value[key], key)) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-class ObjectOf<T> extends Type<Dict<T>> {
+class ObjectOfType<T> extends Type<ObjectOf<T>> {
 
     constructor(private valueType: Type<T>) {
         super();
@@ -121,16 +111,24 @@ class ObjectOf<T> extends Type<Dict<T>> {
         return `Object<${this.valueType.getName()}>`;
     }
 
-    public isTypeOf(value: Object): value is Dict<T> {
-        return isPlainObject(value) && every(value, (v: T) => {
-            return this.valueType.isTypeOf(v);
-        });
+    public isTypeOf(value: Object): value is ObjectOf<T> {
+        if (isPlainObject(value)) {
+            for (const key in value) {
+                if (Object.prototype.hasOwnProperty.call(value, key)) {
+                    if (!this.valueType.isTypeOf(value[key])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
 }
 
-export function objectOf<T>(valueType: Type<T>): Type<Dict<T>> {
-    return new ObjectOf(valueType);
+export function objectOf<T>(valueType: Type<T>): Type<ObjectOf<T>> {
+    return new ObjectOfType(valueType);
 }
 
 
@@ -164,9 +162,9 @@ export function tupleOf(types: Array<Type<Object>>): Type<Array<any>> {
 
 // Heterogenous objects.
 
-class ShapeOf extends Type<Dict<Object>> {
+class ShapeOf extends Type<ObjectOf<Object>> {
 
-    constructor(private types: Dict<Type<Object>>) {
+    constructor(private types: ObjectOf<Type<Object>>) {
         super();
     }
 
@@ -174,12 +172,22 @@ class ShapeOf extends Type<Dict<Object>> {
         return `{${Object.keys(this.types).map((key: string) => `${key}: ${this.types[key].getName()}`).join(", ")}}`;
     }
 
-    public isTypeOf(value: Object): value is Dict<Object> {
-        return isPlainObject(value) && every(this.types, (type: Type<Object>, key: string) => type.isTypeOf(value[key]));
+    public isTypeOf(value: Object): value is ObjectOf<Object> {
+        if (isPlainObject(value)) {
+            for (const key in this.types) {
+                if (Object.prototype.hasOwnProperty.call(this.types, key)) {
+                    if (!this.types[key].isTypeOf(value[key])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
 }
 
-export function shapeOf(types: Dict<Type<Object>>): Type<Dict<any>> {
+export function shapeOf(types: ObjectOf<Type<Object>>): Type<any> {
     return new ShapeOf(types);
 }

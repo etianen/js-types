@@ -1,110 +1,245 @@
 import {expect} from "chai";
-import {Type, stringType, numberType, booleanType, nullableOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
+import {ObjectOf, Type, stringType, numberType, booleanType, nullableOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
 
 
 describe("types", () => {
 
-    const values: Array<[string, Array<any>]> = [
-        ["string", ["", "foo", "0", "1", "true", "false"]],
-        ["number", [0, 1, -1]],
-        ["boolean", [false, true]],
-        ["null", [null]],
-        ["string array", [["foo", "bar"]]],
-        ["number array", [[1, 2, 3], []]],
-        ["string object", [{foo: "foo", bar: "bar"}]],
-        ["number object", [{foo: 1, bar: 2}, {}]],
-        ["number string tuple", [[1, "one"]]],
-        ["number tuple", [[1]]],
-        ["string string tuple", [["foo", "bar"]]],
-        ["number string shape", [{foo: 1, bar: "bar"}]],
-        ["number number shape", [{foo: 1, bar: 1}]],
-        ["number shape", [{foo: 1}]],
-        ["undefined", [undefined]],
-    ];
-
-    function describeType(name: string, type: Type<any>, validTypeNames: Array<string>): void {
-        // Test the name.
-        it("provides a descriptive name", () => {
-            expect(type.getName()).to.equal(name);
-        });
-        // Test it passes values.
-        values.forEach(([typeName, typeValues]: [string, Array<any>]) => {
-            if (validTypeNames.indexOf(typeName) === -1) {
-                it(`fails ${typeName}`, () => {
-                    typeValues.forEach((value: any) => {
-                        expect(type.isTypeOf(value)).to.be.false;
-                    });
-                });
-                it(`errors on conversion from ${typeName}`, () => {
-                    typeValues.forEach((value: any) => {
-                        expect(() => type.from(value)).to.throw(TypeError, `Expected ${name}, received ${value}`);
-                    });
-                });
-            } else {
-                it(`passes ${typeName}`, () => {
-                    typeValues.forEach((value: any) => {
-                        expect(type.isTypeOf(value)).to.be.true;
-                    });
-                });
-                it(`converts from ${typeName}`, () => {
-                    typeValues.forEach((value: any) => {
-                        expect(type.from(value)).to.equal(value);
-                    });
-                });
-                it("allows a default conversion value", () => {
-                    typeValues.forEach((value: any) => {
-                        expect(type.from(undefined, value)).to.equal(value);
-                    });
-                });
-            }
-        });
-    }
-
     describe("stringType", () => {
 
-        describeType("string", stringType, ["string"]);
+        it("passes strings", () => {
+            expect(stringType.isTypeOf("")).to.be.true;
+            expect(stringType.isTypeOf("foo")).to.be.true;
+        });
+
+        it("fails non-strings", () => {
+            expect(stringType.isTypeOf(1)).to.be.false;
+            expect(stringType.isTypeOf(true)).to.be.false;
+            expect(stringType.isTypeOf({})).to.be.false;
+            expect(stringType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(stringType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(stringType.isTypeOf(undefined)).to.be.false;
+        });
 
     });
 
     describe("numberType", () => {
 
-        describeType("number", numberType, ["number"]);
+        it("passes numbers", () => {
+            expect(numberType.isTypeOf(0)).to.be.true;
+            expect(numberType.isTypeOf(1)).to.be.true;
+            expect(numberType.isTypeOf(-1)).to.be.true;
+        });
+
+        it("fails non-numbers", () => {
+            expect(numberType.isTypeOf("foo")).to.be.false;
+            expect(numberType.isTypeOf(true)).to.be.false;
+            expect(numberType.isTypeOf({})).to.be.false;
+            expect(numberType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(numberType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(numberType.isTypeOf(undefined)).to.be.false;
+        });
 
     });
 
     describe("booleanType", () => {
 
-        describeType("boolean", booleanType, ["boolean"]);
+        it("passes booleans", () => {
+            expect(booleanType.isTypeOf(true)).to.be.true;
+            expect(booleanType.isTypeOf(false)).to.be.true;
+        });
+
+        it("fails non-booleans", () => {
+            expect(booleanType.isTypeOf("foo")).to.be.false;
+            expect(booleanType.isTypeOf(1)).to.be.false;
+            expect(booleanType.isTypeOf({})).to.be.false;
+            expect(booleanType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(booleanType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(booleanType.isTypeOf(undefined)).to.be.false;
+        });
 
     });
 
     describe("nullableOf", () => {
 
-        describeType("number?", nullableOf(numberType), ["number", "null"]);
+        const nullableStringType: Type<string> = nullableOf(stringType);
+
+        it("passes values of wrapped type", () => {
+            expect(nullableStringType.isTypeOf("")).to.be.true;
+            expect(nullableStringType.isTypeOf("foo")).to.be.true;
+        });
+
+        it("fails values not of wrapped type", () => {
+            expect(nullableStringType.isTypeOf(1)).to.be.false;
+            expect(nullableStringType.isTypeOf(true)).to.be.false;
+            expect(nullableStringType.isTypeOf({})).to.be.false;
+            expect(nullableStringType.isTypeOf([])).to.be.false;
+        });
+
+        it("passes nulls", () => {
+            expect(nullableStringType.isTypeOf(null)).to.be.true;
+        });
+
+        it("fails undefined", () => {
+            expect(nullableStringType.isTypeOf(undefined)).to.be.false;
+        });
 
     });
 
     describe("arrayOf", () => {
 
-        describeType("Array<number>", arrayOf(numberType), ["number array", "number tuple"]);
+        const stringArrayType: Type<Array<string>> = arrayOf(stringType);
+
+        it("passes arrays of value type", () => {
+            expect(stringArrayType.isTypeOf(["foo"])).to.be.true;
+        });
+
+        it("passes empty arrays", () => {
+            expect(stringArrayType.isTypeOf([])).to.be.true;
+        });
+
+        it("fails non-arrays", () => {
+            expect(stringArrayType.isTypeOf("")).to.be.false;
+            expect(stringArrayType.isTypeOf(1)).to.be.false;
+            expect(stringArrayType.isTypeOf(true)).to.be.false;
+            expect(stringArrayType.isTypeOf({})).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(stringArrayType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(stringArrayType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("fails arrays of incorrect value type", () => {
+            expect(stringArrayType.isTypeOf([1])).to.be.false;
+        });
 
     });
 
     describe("objectOf", () => {
 
-        describeType("Object<number>", objectOf(numberType), ["number object", "number number shape", "number shape"]);
+        const stringObjectType: Type<ObjectOf<string>> = objectOf(stringType);
+
+        it("passes objects of value type", () => {
+            expect(stringObjectType.isTypeOf({foo: "foo"})).to.be.true;
+        });
+
+        it("passes empty objects", () => {
+            expect(stringObjectType.isTypeOf({})).to.be.true;
+        });
+
+        it("fails non-objects", () => {
+            expect(stringObjectType.isTypeOf("")).to.be.false;
+            expect(stringObjectType.isTypeOf(1)).to.be.false;
+            expect(stringObjectType.isTypeOf(true)).to.be.false;
+            expect(stringObjectType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(stringObjectType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(stringObjectType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("fails objects of incorrect value type", () => {
+            expect(stringObjectType.isTypeOf({foo: 1})).to.be.false;
+        });
 
     });
 
     describe("tupleOf", () => {
 
-        describeType("[number, string]", tupleOf([numberType, stringType]), ["number string tuple"]);
+        const numberStringTupleType: Type<[number, string]> = tupleOf([numberType, stringType]);
+
+        it("passes tuples of value types", () => {
+            expect(numberStringTupleType.isTypeOf([1, "foo"])).to.be.true;
+        });
+
+        it("fails empty tuples", () => {
+            expect(numberStringTupleType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails non-tuples", () => {
+            expect(numberStringTupleType.isTypeOf("")).to.be.false;
+            expect(numberStringTupleType.isTypeOf(1)).to.be.false;
+            expect(numberStringTupleType.isTypeOf(true)).to.be.false;
+            expect(numberStringTupleType.isTypeOf({})).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(numberStringTupleType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(numberStringTupleType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("fails tuples of incorrect value type", () => {
+            expect(numberStringTupleType.isTypeOf([1, 0])).to.be.false;
+        });
+
+        it("fails tuples missing value types", () => {
+            expect(numberStringTupleType.isTypeOf([1])).to.be.false;
+        });
 
     });
 
     describe("shapeOf", () => {
 
-        describeType("{foo: number, bar: string}", shapeOf({foo: numberType, bar: stringType}), ["number string shape"]);
+        const numberStringShapeType: Type<{foo: number, bar: string}> = shapeOf({foo: numberType, bar: stringType});
+
+        it("passes shapes of value type", () => {
+            expect(numberStringShapeType.isTypeOf({foo: 1, bar: "bar"})).to.be.true;
+        });
+
+        it("fails empty shapes", () => {
+            expect(numberStringShapeType.isTypeOf({})).to.be.false;
+        });
+
+        it("fails non-shapes", () => {
+            expect(numberStringShapeType.isTypeOf("")).to.be.false;
+            expect(numberStringShapeType.isTypeOf(1)).to.be.false;
+            expect(numberStringShapeType.isTypeOf(true)).to.be.false;
+            expect(numberStringShapeType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails nulls", () => {
+            expect(numberStringShapeType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(numberStringShapeType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("fails shapes of incorrect value type", () => {
+            expect(numberStringShapeType.isTypeOf({foo: 1, bar: 1})).to.be.false;
+        });
+
+        it("fails shapes missing value types", () => {
+            expect(numberStringShapeType.isTypeOf({foo: 1})).to.be.false;
+        });
 
     });
 
