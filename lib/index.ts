@@ -81,6 +81,23 @@ class OrUndefinedType<T> extends Type<T> {
 }
 
 
+// Strict any type.
+
+class AnyType extends Type<Object> {
+
+    public getName(): string {
+        return "any";
+    }
+
+    public isTypeOf(value: Object): value is Object {
+        return value !== null && value !== undefined;
+    }
+
+}
+
+export const anyType: Type<Object> = new AnyType();
+
+
 // Primitive types.
 
 class PrimitiveType<T> extends Type<T> {

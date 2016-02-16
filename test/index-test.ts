@@ -1,8 +1,33 @@
 import {expect} from "chai";
-import {ObjectOf, Type, stringType, numberType, booleanType, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
+import {ObjectOf, Type, anyType, stringType, numberType, booleanType, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
 
 
 describe("types", () => {
+
+    describe("anyType", () => {
+
+        it("has a descriptive name", () => {
+            expect(anyType.getName()).to.equal("any");
+        });
+
+        it("passes all values", () => {
+            expect(anyType.isTypeOf("")).to.be.true;
+            expect(anyType.isTypeOf("foo")).to.be.true;
+            expect(anyType.isTypeOf(1)).to.be.true;
+            expect(anyType.isTypeOf(true)).to.be.true;
+            expect(anyType.isTypeOf({})).to.be.true;
+            expect(anyType.isTypeOf([])).to.be.true;
+        });
+
+        it("fails nulls", () => {
+            expect(anyType.isTypeOf(null)).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(anyType.isTypeOf(undefined)).to.be.false;
+        });
+
+    });
 
     describe("stringType", () => {
 
@@ -325,7 +350,7 @@ describe("types", () => {
 
         });
 
-        describe("undefinedOf", () => {
+        describe(".orUndefined()", () => {
 
             const undefinedStringType: Type<string> = stringType.orUndefined();
 
