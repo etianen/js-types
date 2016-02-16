@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ObjectOf, Type, anyType, stringType, numberType, booleanType, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
+import {ObjectOf, ValueError, Type, anyType, stringType, numberType, booleanType, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
 
 
 describe("types", () => {
@@ -287,7 +287,7 @@ describe("types", () => {
             });
 
             it("errors on unexpected type", () => {
-                expect(() => arrayOfModelType.from("foo")).to.throw(TypeError, "Expected Array<{id: number, name: string}>, received \"foo\"");
+                expect(() => arrayOfModelType.from("foo")).to.throw(ValueError, "Expected Array<{id: number, name: string}> (received \"foo\")");
             });
 
         });

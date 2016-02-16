@@ -3,6 +3,29 @@
 export type ObjectOf<T> = {[key: string]: T};
 
 
+// Errors.
+
+export class ValueError<T> extends Error {
+
+    public stack: string;
+
+    constructor(public message: string, public value: T) {
+        super();
+        // Add the stack, if supported by the runtime.
+        if ((Error as any).captureStackTrace) {
+            (Error as any).captureStackTrace(this, this.constructor);
+        } else {
+            this.stack = (new (Error as any)()).stack;
+        }
+    }
+
+    public toString(): string {
+        return `${this.message} (received ${JSON.stringify(this.value)})`;
+    }
+
+}
+
+
 // Runtime types.
 
 export abstract class Type<T> {
@@ -15,7 +38,7 @@ export abstract class Type<T> {
         if (this.isTypeOf(value)) {
             return value;
         }
-        throw new TypeError(`Expected ${this.getName()}, received ${JSON.stringify(value)}`);
+        throw new ValueError(`Expected ${this.getName()}`, value);
     }
 
     public or<U>(type: Type<U>): Type<T | U> {
