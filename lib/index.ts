@@ -41,6 +41,17 @@ export abstract class Type<T> {
         throw new ValueError(`Expected ${this.getName()}`, value);
     }
 
+    public fromJSON(value: string): T {
+        try {
+            return this.from(JSON.parse(value));
+        } catch (ex) {
+            if (ex instanceof SyntaxError) {
+                throw new ValueError(`Invalid JSON`, value);
+            }
+            throw ex;
+        }
+    }
+
     public or<U>(type: Type<U>): Type<T | U> {
         return new IntersectionOfType(this, type);
     }

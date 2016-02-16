@@ -292,6 +292,18 @@ describe("types", () => {
 
         });
 
+        describe(".fromJSON()", () => {
+
+            it("decodes to expected type", () => {
+                expect(stringType.fromJSON('"5"')).to.equal("5");
+            });
+
+            it("errors on unexpected type", () => {
+                expect(() => stringType.fromJSON("5")).to.throw(ValueError, "Expected string (received 5)");
+            });
+
+        });
+
         describe(".or()", () => {
 
             const stringOrNumberType: Type<string | number> = stringType.or(numberType);
