@@ -22,6 +22,7 @@
     "label-position": true,
     "label-undefined": true,
     "member-access": true,
+    "no-any": true,
     "no-arg": true,
     "no-bitwise": true,
     "no-conditional-assignment": true,
@@ -44,6 +45,7 @@
         true,
         "react"
     ],
+    "no-use-before-declare": true,
     "no-var-keyword": true,
     "one-line": [
       true,

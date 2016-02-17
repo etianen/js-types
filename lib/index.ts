@@ -5,6 +5,14 @@ export type ObjectOf<T> = {[key: string]: T};
 
 // Errors.
 
+interface ExtendedErrorConstructor extends ErrorConstructor {
+    captureStackTrace: (ex: Error, constructor: Function) => void;
+}
+
+interface ExtendedError extends Error {
+    stack: string;
+}
+
 export class ValueError<T> extends Error {
 
     public stack: string;
@@ -12,10 +20,10 @@ export class ValueError<T> extends Error {
     constructor(public message: string, public value: T) {
         super();
         // Add the stack, if supported by the runtime.
-        if ((Error as any).captureStackTrace) {
-            (Error as any).captureStackTrace(this, this.constructor);
+        if ((Error as ExtendedErrorConstructor).captureStackTrace) {
+            (Error as ExtendedErrorConstructor).captureStackTrace(this, this.constructor);
         } else {
-            this.stack = (new (Error as any)()).stack;
+            this.stack = ((new Error()) as ExtendedError).stack;
         }
     }
 
@@ -28,49 +36,38 @@ export class ValueError<T> extends Error {
 
 // Runtime types.
 
-export abstract class Type<T> {
+export interface Type<T> {
 
-    public abstract getName(): string;
+    getName(): string;
 
-    public abstract isTypeOf(value: Object): value is T;
-
-    public from(value: Object): T {
-        if (this.isTypeOf(value)) {
-            return value;
-        }
-        throw new ValueError(`Expected ${this.getName()}`, value);
-    }
-
-    public fromJSON(value: string): T {
-        try {
-            return this.from(JSON.parse(value));
-        } catch (ex) {
-            if (ex instanceof SyntaxError) {
-                throw new ValueError(`Invalid JSON`, value);
-            }
-            throw ex;
-        }
-    }
-
-    public or<U>(type: Type<U>): Type<T | U> {
-        return new IntersectionOfType(this, type);
-    }
-
-    public orNull(): Type<T> {
-        return new OrNullType(this);
-    }
-
-    public orUndefined(): Type<T> {
-        return new OrUndefinedType(this);
-    }
+    isTypeOf(value: Object): value is T;
 
 }
 
-class IntersectionOfType<A, B> extends Type<A | B> {
-
-    constructor(private a: Type<A>, private b: Type<B>) {
-        super();
+export function fromJS<T>(value: Object, type: Type<T>): T {
+    if (type.isTypeOf(value)) {
+        return value;
     }
+    throw new ValueError(`Expected ${type.getName()}`, value);
+}
+
+export function fromJSON<T>(value: string, type: Type<T>): T {
+    try {
+        return fromJS(JSON.parse(value), type);
+    } catch (ex) {
+        if (ex instanceof SyntaxError) {
+            throw new ValueError(`Invalid JSON`, value);
+        }
+        throw ex;
+    }
+};
+
+
+// Intersection types.
+
+class IntersectionOfType<A, B> implements Type<A | B> {
+
+    constructor(private a: Type<A>, private b: Type<B>) {}
 
     public getName(): string {
         return `${this.a.getName()} | ${this.b.getName()}`;
@@ -82,11 +79,16 @@ class IntersectionOfType<A, B> extends Type<A | B> {
 
 }
 
-class OrNullType<T> extends Type<T> {
+export function intersectionOf<A, B>(a: Type<A>, b: Type<B>): Type<A | B> {
+    return new IntersectionOfType(a, b);
+}
 
-    constructor(private type: Type<T>) {
-        super();
-    }
+
+// Null types.
+
+class NullableOfType<T> implements Type<T> {
+
+    constructor(private type: Type<T>) {}
 
     public getName(): string {
         return this.type.getName();
@@ -98,11 +100,16 @@ class OrNullType<T> extends Type<T> {
 
 }
 
-class OrUndefinedType<T> extends Type<T> {
+export function nullableOf<T>(type: Type<T>): Type<T> {
+    return new NullableOfType(type);
+}
 
-    constructor(private type: Type<T>) {
-        super();
-    }
+
+// Undefined types.
+
+class OptionalOfType<T> implements Type<T> {
+
+    constructor(private type: Type<T>) {}
 
     public getName(): string {
         return `${this.type.getName()}?`;
@@ -114,31 +121,28 @@ class OrUndefinedType<T> extends Type<T> {
 
 }
 
+export function optionalOf<T>(type: Type<T>): Type<T> {
+    return new OptionalOfType(type);
+}
+
 
 // Strict any type.
 
-class AnyType extends Type<Object> {
-
-    public getName(): string {
+export const anyType: Type<Object> = {
+    getName(): string {
         return "any";
-    }
-
-    public isTypeOf(value: Object): value is Object {
+    },
+    isTypeOf(value: Object): value is Object {
         return value !== null && value !== undefined;
-    }
-
-}
-
-export const anyType: Type<Object> = new AnyType();
+    },
+};
 
 
 // Primitive types.
 
-class PrimitiveType<T> extends Type<T> {
+class PrimitiveType<T> implements Type<T> {
 
-    constructor(private name: string) {
-        super();
-    }
+    constructor(private name: string) {}
 
     public getName(): string {
         return this.name;
@@ -159,11 +163,9 @@ export const booleanType: Type<boolean> = new PrimitiveType<boolean>("boolean");
 
 // Homogenous arrays.
 
-class ArrayOfType<T> extends Type<Array<T>> {
+class ArrayOfType<T> implements Type<Array<T>> {
 
-    constructor(private valueType: Type<T>) {
-        super();
-    }
+    constructor(private valueType: Type<T>) {}
 
     public getName(): string {
         return `Array<${this.valueType.getName()}>`;
@@ -186,14 +188,12 @@ function isPlainObject(value: Object): value is ObjectOf<Object> {
     return value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
 }
 
-class ObjectOfType<T> extends Type<ObjectOf<T>> {
+class ObjectOfType<T> implements Type<ObjectOf<T>> {
 
-    constructor(private valueType: Type<T>) {
-        super();
-    }
+    constructor(private valueType: Type<T>) {}
 
     public getName(): string {
-        return `ObjectOf<${this.valueType.getName()}>`;
+        return `Object<${this.valueType.getName()}>`;
     }
 
     public isTypeOf(value: Object): value is ObjectOf<T> {
@@ -219,11 +219,9 @@ export function objectOf<T>(valueType: Type<T>): Type<ObjectOf<T>> {
 
 // Heterogenous arrays.
 
-class TupleOfType extends Type<Array<Object>> {
+class TupleOfType implements Type<Array<Object>> {
 
-    constructor(private types: Array<Type<Object>>) {
-        super();
-    }
+    constructor(private types: Array<Type<Object>>) {}
 
     public getName(): string {
         return `[${this.types.map(type => type.getName()).join(", ")}]`;
@@ -248,18 +246,16 @@ export function tupleOf<A, B>(types: [Type<A>, Type<B>]): Type<[A, B]>;
 export function tupleOf<A, B, C>(types: [Type<A>, Type<B>, Type<C>]): Type<[A, B, C]>;
 export function tupleOf<A, B, C, D>(types: [Type<A>, Type<B>, Type<C>, Type<D>]): Type<[A, B, C, D]>;
 export function tupleOf<A, B, C, D, E>(types: [Type<A>, Type<B>, Type<C>, Type<D>, Type<E>]): Type<[A, B, C, D, E]>;
-export function tupleOf(types: Array<Type<Object>>): Type<Array<any>> {
+export function tupleOf(types: Array<Type<Object>>): Type<Array<Object>> {
     return new TupleOfType(types);
 }
 
 
 // Heterogenous objects.
 
-class ShapeOfType extends Type<ObjectOf<Object>> {
+class ShapeOfType implements Type<ObjectOf<Object>> {
 
-    constructor(private types: ObjectOf<Type<Object>>) {
-        super();
-    }
+    constructor(private types: ObjectOf<Type<Object>>) {}
 
     public getName(): string {
         return `{${Object.keys(this.types).map((key: string) => `${key}: ${this.types[key].getName()}`).join(", ")}}`;
@@ -281,6 +277,6 @@ class ShapeOfType extends Type<ObjectOf<Object>> {
 
 }
 
-export function shapeOf(types: ObjectOf<Type<Object>>): Type<any> {
+export function shapeOf(types: ObjectOf<Type<Object>>): Type<Object> {
     return new ShapeOfType(types);
 }
