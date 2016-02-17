@@ -1,5 +1,6 @@
 {
   "name": "@etianen/types",
+  "main": "lib/index.d.ts",
   "dependencies": {},
   "devDependencies": {},
   "ambientDevDependencies": {

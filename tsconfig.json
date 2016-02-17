@@ -4,12 +4,13 @@
         "target": "es5",
         "noImplicitAny": true,
         "sourceMap": true,
+        "moduleResolution": "node",
         "noFallthroughCasesInSwitch": true
     },
     "compileOnSave": false,
-    "exclude": [
-        "typings/browser.d.ts",
-        "typings/browser",
-        "node_modules"
+    "files": [
+        "typings/main.d.ts",
+        "lib/index.ts",
+        "test/index-test.ts"
     ]
 }
