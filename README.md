@@ -297,6 +297,24 @@ const myShapeType: Type<MyShape> = shapeOf({
 ```
 
 
+### `referenceOf()`
+
+A reference `Type`, representing a reference to another `Type`.
+
+``` ts
+referenceOf<T>(getType: () => Type<T>): Type<T>;
+```
+
+Use this to implement circular references in `Type`s.
+
+``` js
+const circularType = shapeOf({
+    title: stringType,
+    children: arrayOf(referenceOf(circularType)),
+});
+```
+
+
 ## Build status
 
 This project is built on every push using the Travis-CI service.

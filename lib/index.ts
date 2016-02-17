@@ -63,6 +63,27 @@ export function fromJSON<T>(value: string, type: Type<T>): T {
 };
 
 
+// Reference types.
+
+class ReferenceOfType<T> implements Type<T> {
+
+    constructor(private getType: () => Type<T>) {}
+
+    public getName(): string {
+        return this.getType().getName();
+    }
+
+    public isTypeOf(value: Object): value is T {
+        return this.getType().isTypeOf(value);
+    }
+
+}
+
+export function referenceOf<T>(getType: () => Type<T>): Type<T> {
+    return new ReferenceOfType(getType);
+}
+
+
 // Intersection types.
 
 class IntersectionOfType<A, B> implements Type<A | B> {

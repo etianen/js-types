@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ObjectOf, ValueError, Type, fromJS, fromJSON, anyType, stringType, numberType, booleanType, intersectionOf, unionOf, nullableOf, optionalOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
+import {ObjectOf, ValueError, Type, fromJS, fromJSON, anyType, stringType, numberType, booleanType, referenceOf, intersectionOf, unionOf, nullableOf, optionalOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
 
 
 describe("types", () => {
@@ -33,6 +33,39 @@ describe("types", () => {
 
         it("erors on invalid JSON", () => {
             expect(() => fromJSON("[", arrayOf(stringType))).to.throw(ValueError, 'Invalid JSON (received "[")');
+        });
+
+    });
+
+    describe("referenceOf", () => {
+
+        describe("nullableOf", () => {
+
+            const referenceOfStringType: Type<string> = referenceOf(() => stringType);
+
+            it("has a descriptive name", () => {
+                expect(referenceOfStringType.getName()).to.equal("string");
+            });
+
+            it("passes values of wrapped type", () => {
+                expect(referenceOfStringType.isTypeOf("foo")).to.be.true;
+            });
+
+            it("fails values not of wrapped type", () => {
+                expect(referenceOfStringType.isTypeOf(1)).to.be.false;
+                expect(referenceOfStringType.isTypeOf(true)).to.be.false;
+                expect(referenceOfStringType.isTypeOf({})).to.be.false;
+                expect(referenceOfStringType.isTypeOf([])).to.be.false;
+            });
+
+            it("fails nulls", () => {
+                expect(referenceOfStringType.isTypeOf(null)).to.be.false;
+            });
+
+            it("fails undefined", () => {
+                expect(referenceOfStringType.isTypeOf(undefined)).to.be.false;
+            });
+
         });
 
     });
