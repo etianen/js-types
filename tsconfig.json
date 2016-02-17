@@ -5,6 +5,7 @@
         "noImplicitAny": true,
         "sourceMap": true,
         "moduleResolution": "node",
+        "declaration": true,
         "noFallthroughCasesInSwitch": true
     },
     "compileOnSave": false,

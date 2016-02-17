@@ -6,7 +6,7 @@
   "scripts": {
     "typings": "typings install",
     "prebuild": "npm run typings",
-    "build": "tsc --declaration",
+    "build": "tsc",
     "premocha": "npm run build",
     "mocha": "mocha --require source-map-support/register",
     "lint": "tslint ./lib/index.ts ./test/index-test.ts",
