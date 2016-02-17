@@ -4,7 +4,7 @@
   "description": "Runtime type checking of untrusted data.",
   "main": "./lib/index.js",
   "scripts": {
-    "postinstall": "tsd install",
+    "postinstall": "typings install",
     "build": "tsc --declaration",
     "premocha": "npm run build",
     "mocha": "mocha --require source-map-support/register",
@@ -19,8 +19,20 @@
     "chai": "^3.5.0",
     "mocha": "^2.4.5",
     "source-map-support": "^0.4.0",
-    "tsd": "^0.6.5",
     "tslint": "^3.3.0",
-    "typescript": "^1.8.0"
-  }
+    "typescript": "^1.8.0",
+    "typings": "^0.6.8"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etianen/js-types.git"
+  },
+  "bugs": {
+    "url": "https://github.com/etianen/js-types/issues"
+  },
+  "homepage": "https://github.com/etianen/js-types#readme"
 }
