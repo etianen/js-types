@@ -26,6 +26,9 @@
   "directories": {
     "test": "test"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {},
   "repository": {
     "type": "git",
