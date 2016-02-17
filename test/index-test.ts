@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ObjectOf, ValueError, Type, fromJS, fromJSON, anyType, stringType, numberType, booleanType, intersectionOf, nullableOf, optionalOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
+import {ObjectOf, ValueError, Type, fromJS, fromJSON, anyType, stringType, numberType, booleanType, intersectionOf, unionOf, nullableOf, optionalOf, arrayOf, objectOf, tupleOf, shapeOf} from "../lib/index";
 
 
 describe("types", () => {
@@ -172,6 +172,48 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(stringOrNumberType.isTypeOf(undefined)).to.be.false;
+        });
+
+    });
+
+    describe("unionOf", () => {
+
+        interface StringShape {
+            foo: string;
+        }
+
+        interface NumberShape {
+            bar: number;
+        }
+
+        const stringShapeType: Type<StringShape> = shapeOf({foo: stringType}) as Type<StringShape>;
+
+        const numberShapeType: Type<NumberShape> = shapeOf({bar: numberType}) as Type<NumberShape>;
+
+        const stringNumberShapeType: Type<StringShape & NumberShape> = unionOf(stringShapeType, numberShapeType);
+
+        it("has a descriptive name", () => {
+            expect(stringNumberShapeType.getName()).to.equal("{foo: string} & {bar: number}");
+        });
+
+        it("passes values of both wrapped types", () => {
+            expect(stringNumberShapeType.isTypeOf({foo: "foo", bar: 1})).to.be.true;
+        });
+
+        it("fails values not of wrapped type", () => {
+            expect(stringNumberShapeType.isTypeOf("foo")).to.be.false;
+            expect(stringNumberShapeType.isTypeOf(1)).to.be.false;
+            expect(stringNumberShapeType.isTypeOf(true)).to.be.false;
+            expect(stringNumberShapeType.isTypeOf({})).to.be.false;
+            expect(stringNumberShapeType.isTypeOf([])).to.be.false;
+        });
+
+        it("fails values matching only one type", () => {
+            expect(stringNumberShapeType.isTypeOf({foo: "foo"})).to.be.false;
+        });
+
+        it("fails undefined", () => {
+            expect(stringNumberShapeType.isTypeOf(undefined)).to.be.false;
         });
 
     });

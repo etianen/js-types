@@ -84,6 +84,27 @@ export function intersectionOf<A, B>(a: Type<A>, b: Type<B>): Type<A | B> {
 }
 
 
+// Union types.
+
+class UnionOfType<A, B> implements Type<A & B> {
+
+    constructor(private a: Type<A>, private b: Type<B>) {}
+
+    public getName(): string {
+        return `${this.a.getName()} & ${this.b.getName()}`;
+    }
+
+    public isTypeOf(value: Object): value is A & B {
+        return (this.a.isTypeOf(value) && this.b.isTypeOf(value)) as boolean;
+    }
+
+}
+
+export function unionOf<A, B>(a: Type<A>, b: Type<B>): Type<A & B> {
+    return new UnionOfType(a, b);
+}
+
+
 // Null types.
 
 class NullableOfType<T> implements Type<T> {
