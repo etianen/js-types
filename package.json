@@ -1,6 +1,6 @@
 {
   "name": "@etianen/types",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Runtime type checking of untrusted data.",
   "main": "./lib/index.js",
   "scripts": {
