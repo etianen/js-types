@@ -1,7 +1,7 @@
 {
   "name": "@etianen/types",
   "version": "1.0.0",
-  "description": "",
+  "description": "Runtime type checking of untrusted data.",
   "main": "./lib/index.js",
   "scripts": {
     "postinstall": "tsd install",
