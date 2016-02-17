@@ -4,7 +4,8 @@
   "description": "Runtime type checking of untrusted data.",
   "main": "./lib/index.js",
   "scripts": {
-    "postinstall": "typings install",
+    "typings": "typings install",
+    "prebuild": "npm run typings",
     "build": "tsc --declaration",
     "premocha": "npm run build",
     "mocha": "mocha --require source-map-support/register",
