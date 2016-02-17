@@ -12,7 +12,7 @@ deploy:
   provider: npm
   email: dave@etianen.com
   api_key:
-    secure: # TODO
+    secure: "QEBgI8om+I1WbEpgXkTKxFDLLFkeoyCrkw85J50qPoGYstmLkwSH3GfycNYKf6CtcnjHi9BTArECkuaxF3Ru4QIsLiz4rfGcJhULFe6yWXv262JDOL9qYZUKyc7ZnAQjVEjzsmG1yNd1LO6VngqBkXRkt+Y/1Zt/dy6/9ZL7xunNFXMPErIvsGdZQroWC9GEHQ8YZr9vWSIHb1tjtBxENLFABB+kE1QaNRT48UfU1hQgA2Fs+jMUQZi24JeTBq9hPSuzi40FTyaxGXnZ3a0sMfM8QCpjANq3M8UJnaHmWzVvGDIqvm3Fe1D5FGh0yXgRONrrlffImikfN5QBzEttT5lOVlaT2R46cu5uLFtuzoAzhOyvEc5nM+TgzUqZXSinnFgRNM3/KA25ega8MvGLuLi7XryqmF7iABQ15ooyT0FYnkz8hlFtAGGyMP3FH3LJJC76fic21sZqhjSAMkW/cPXNA3U6jFZ4WsjRhAYzAVhjCu/fK0Ezc/rqwEOJ2FH5jMOuDJx+O8g2NZRwO1HwX4sx9gWI2yz42eWs8sb9ygAZEY4BRa6rkxEJUhwVJaL/Mu2h3m+gICXitfn6zVsfRMo00FKKi3QRLr4NG3uMgD2o4CKsfJ8ireUVkdLQEEn464sCsLfYgRe6h45auOCpUYnQQXlf6O3IKWlgY27uqy8="
   skip_cleanup: true
   on:
     tags: true
