@@ -30,7 +30,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@etianen/base-error": "^0.1.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/etianen/js-types.git"

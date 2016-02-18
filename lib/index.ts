@@ -1,3 +1,6 @@
+import BaseError from "@etianen/base-error";
+
+
 // Utility types.
 
 export type ObjectOf<T> = {[key: string]: T};
@@ -5,30 +8,14 @@ export type ObjectOf<T> = {[key: string]: T};
 
 // Errors.
 
-interface ExtendedErrorConstructor extends ErrorConstructor {
-    captureStackTrace: (ex: Error, constructor: Function) => void;
-}
+export class ValueError<T> extends BaseError {
 
-interface ExtendedError extends Error {
-    stack: string;
-}
-
-export class ValueError<T> extends Error {
-
-    public stack: string;
-
-    constructor(public message: string, public value: T) {
-        super();
-        // Add the stack, if supported by the runtime.
-        if ((Error as ExtendedErrorConstructor).captureStackTrace) {
-            (Error as ExtendedErrorConstructor).captureStackTrace(this, this.constructor);
-        } else {
-            this.stack = ((new Error()) as ExtendedError).stack;
-        }
+    constructor(message: string, public value: T) {
+        super(message);
     }
 
     public toString(): string {
-        return `${this.message} (received ${JSON.stringify(this.value)})`;
+        return `${super.toString()} (received ${JSON.stringify(this.value)})`;
     }
 
 }
