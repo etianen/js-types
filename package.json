@@ -9,7 +9,7 @@
     "build": "tsc",
     "premocha": "npm run build",
     "mocha": "mocha --require source-map-support/register",
-    "lint": "tslint ./lib/index.ts ./test/index-test.ts",
+    "lint": "find ./lib ./test -name '*.ts' -not -name '*.d.ts' -exec tslint '{}' \\;",
     "test": "npm run mocha && npm run lint",
     "prepublish": "npm run build"
   },
