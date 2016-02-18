@@ -31,7 +31,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@etianen/base-error": "^0.1.0"
+    "@etianen/base-error": "^0.1.0",
+    "@etianen/object-of": "^0.1.0"
   },
   "repository": {
     "type": "git",

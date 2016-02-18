@@ -1,9 +1,10 @@
 import BaseError from "@etianen/base-error";
+import {ObjectOf, Entry, entries, every, has} from "@etianen/object-of";
 
 
 // Utility types.
 
-export type ObjectOf<T> = {[key: string]: T};
+export type ObjectOf<T> = ObjectOf<T>;
 
 
 // Errors.
@@ -29,6 +30,10 @@ export interface Type<T> {
 
     isTypeOf(value: Object): value is T;
 
+}
+
+function getTypeName(type: Type<Object>): string {
+    return type.getName();
 }
 
 export function fromJS<T>(value: Object, type: Type<T>): T {
@@ -214,7 +219,7 @@ export function arrayOf<T>(valueType: Type<T>): Type<Array<T>> {
 // Homogonous objects.
 
 function isPlainObject(value: Object): value is ObjectOf<Object> {
-    return value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
+    return value !== null && value !== undefined && Object.getPrototypeOf(value) === Object.prototype;
 }
 
 class ObjectOfType<T> implements Type<ObjectOf<T>> {
@@ -226,17 +231,7 @@ class ObjectOfType<T> implements Type<ObjectOf<T>> {
     }
 
     public isTypeOf(value: Object): value is ObjectOf<T> {
-        if (isPlainObject(value)) {
-            for (const key in value) {
-                if (Object.prototype.hasOwnProperty.call(value, key)) {
-                    if (!this.valueType.isTypeOf(value[key])) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
+        return isPlainObject(value) && every(value, this.valueType.isTypeOf, this.valueType);
     }
 
 }
@@ -253,7 +248,7 @@ class TupleOfType implements Type<Array<Object>> {
     constructor(private types: Array<Type<Object>>) {}
 
     public getName(): string {
-        return `[${this.types.map(type => type.getName()).join(", ")}]`;
+        return `[${this.types.map(getTypeName).join(", ")}]`;
     }
 
     public isTypeOf(value: Object): value is Array<Object> {
@@ -282,18 +277,22 @@ export function tupleOf(types: Array<Type<Object>>): Type<Array<Object>> {
 
 // Heterogenous objects.
 
+function formatEntry([key, type]: Entry<Type<Object>>): string {
+    return `${key}: ${type.getName()}`;
+}
+
 class ShapeOfType implements Type<ObjectOf<Object>> {
 
     constructor(private types: ObjectOf<Type<Object>>) {}
 
     public getName(): string {
-        return `{${Object.keys(this.types).map((key: string) => `${key}: ${this.types[key].getName()}`).join(", ")}}`;
+        return `{${entries(this.types).map(formatEntry).join(", ")}}`;
     }
 
     public isTypeOf(value: Object): value is ObjectOf<Object> {
         if (isPlainObject(value)) {
             for (const key in this.types) {
-                if (Object.prototype.hasOwnProperty.call(this.types, key)) {
+                if (has(this.types, key)) {
                     if (!this.types[key].isTypeOf(value[key])) {
                         return false;
                     }
