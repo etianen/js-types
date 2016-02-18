@@ -319,18 +319,18 @@ const circularType = shapeOf({
 
 This project is built on every push using the Travis-CI service.
 
-[![Build Status](https://travis-ci.org/etianen/types.svg?branch=master)](https://travis-ci.org/etianen/types)
+[![Build Status](https://travis-ci.org/etianen/js-types.svg?branch=master)](https://travis-ci.org/etianen/js-types)
 
 
 ## Support and announcements
 
-Downloads and bug tracking can be found at the [main project website](http://github.com/etianen/types).
+Downloads and bug tracking can be found at the [main project website](http://github.com/etianen/js-types).
 
 
 ## More information
 
 This project was developed by Dave Hall. You can get the code
-from the [project site](http://github.com/etianen/types).
+from the [project site](http://github.com/etianen/js-types).
 
 Dave Hall is a freelance web developer, based in Cambridge, UK. You can usually
 find him on the Internet:
