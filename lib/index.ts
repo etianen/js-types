@@ -1,10 +1,10 @@
 import BaseError from "@etianen/base-error";
-import {ObjectOf, Entry, entries, every, has} from "@etianen/object-of";
+import {map, every, has} from "@etianen/object-of";
 
 
 // Utility types.
 
-export type ObjectOf<T> = ObjectOf<T>;
+export type ObjectOf<T> = {[key: string]: T};
 
 
 // Errors.
@@ -277,7 +277,7 @@ export function tupleOf(types: Array<Type<Object>>): Type<Array<Object>> {
 
 // Heterogenous objects.
 
-function formatEntry([key, type]: Entry<Type<Object>>): string {
+function formatEntry(type: Type<Object>, key: string): string {
     return `${key}: ${type.getName()}`;
 }
 
@@ -286,7 +286,7 @@ class ShapeOfType implements Type<ObjectOf<Object>> {
     constructor(private types: ObjectOf<Type<Object>>) {}
 
     public getName(): string {
-        return `{${entries(this.types).map(formatEntry).join(", ")}}`;
+        return `{${map(this.types, formatEntry).join(", ")}}`;
     }
 
     public isTypeOf(value: Object): value is ObjectOf<Object> {
