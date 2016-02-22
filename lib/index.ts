@@ -1,10 +1,10 @@
 import BaseError from "@etianen/base-error";
-import {map, every, has} from "@etianen/object-of";
+import * as dict from "@etianen/dict";
 
 
 // Utility types.
 
-export type ObjectOf<T> = {[key: string]: T};
+export type ObjectOf<T> = dict.Dict<T>;
 
 
 // Errors.
@@ -231,7 +231,7 @@ class ObjectOfType<T> implements Type<ObjectOf<T>> {
     }
 
     public isTypeOf(value: Object): value is ObjectOf<T> {
-        return isPlainObject(value) && every(value, this.valueType.isTypeOf, this.valueType);
+        return isPlainObject(value) && dict.every(value, this.valueType.isTypeOf, this.valueType);
     }
 
 }
@@ -252,15 +252,7 @@ class TupleOfType implements Type<Array<Object>> {
     }
 
     public isTypeOf(value: Object): value is Array<Object> {
-        if (Array.isArray(value)) {
-            for (let i = 0, l = this.types.length; i < l; i++) {
-                if (!this.types[i].isTypeOf(value[i])) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
+        return Array.isArray(value) && this.types.every((type: Type<Object>, index: number) => type.isTypeOf(value[index]));
     }
 
 }
@@ -286,21 +278,11 @@ class ShapeOfType implements Type<ObjectOf<Object>> {
     constructor(private types: ObjectOf<Type<Object>>) {}
 
     public getName(): string {
-        return `{${map(this.types, formatEntry).join(", ")}}`;
+        return `{${dict.map(this.types, formatEntry).join(", ")}}`;
     }
 
     public isTypeOf(value: Object): value is ObjectOf<Object> {
-        if (isPlainObject(value)) {
-            for (const key in this.types) {
-                if (has(this.types, key)) {
-                    if (!this.types[key].isTypeOf(value[key])) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
+        return isPlainObject(value) && dict.every(this.types, (type: Type<Object>, key: string) => type.isTypeOf(value[key]));
     }
 
 }

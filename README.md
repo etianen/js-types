@@ -9,141 +9,113 @@ Runtime type checking of untrusted data.
 npm install '@etianen/types'
 ```
 
+**TypeScript:** To take advantage of typings, be sure to set `moduleResolution` to `"node"` in your `tsconfig.json`.
+
 
 ## Overview
 
 When receiving JSON data from an untrusted source, it's tempting to just assume the data is of the expected type and shape. This can lead to confusing errors appearing deep in your code.
 
-@etianen/types provides a mechanism to check that untrusted data is the correct shape, or throw a useful debugging message.
-
-
-### Describing data
-
-@etianen/types provides a simple, composable way of describing the shape of data you expect.
-
-``` js
-import {numberType, arrayOf, objectOf} from "@etianen/types";
-
-const numberObjectType = objectOf(numberType);
-
-const listOfNumberObjectType = arrayOf(modelType);
-```
-
-In Typescript:
+@etianen/types provides a mechanism to check that untrusted data is the correct shape, or throw a useful debugging error.
 
 ``` ts
-import {Type, ObjectOf, numberType, arrayOf, objectOf} from "@etianen/types";
+import {numberType, arrayOf, ValueError, fromJSON} from "@etianen/types";
 
-const numberObjectType: Type<ObjectOf<number>> = objectOf(numberType);
+const numberArrayType = arrayOf(numberType);
+numberArrayType.isTypeOf([1]);  // => true
+numberArrayType.isTypeOf(["foo"]);  // => false
+numberArrayType.isTypeOf(true);  // => false
 
-const listOfNumberObjectType: Type<Array<ObjectOf<number>>> = arrayOf(modelType);
-```
-
-See the list of [built-in types](#built-in-types) for more ways of describing data.
-
-
-### Testing data
-
-You can check that data is of the correct shape using the `isTypeOf()` method.
-
-``` js
-const untrustedData = JSON.parse('[{foo: "bar"}]');
-
-if (listOfNumberObjectType.isTypeOf(untrustedData)) {
-    // The data is the correct type.
-    const foo = untrustedData[0].foo;
-} else {
-    // Output a useful debugging message to the console.
-    console.warn(`Expected ${listOfNumberObjectType.getName()}`);
+try {
+    const trustedValue = fromJSON(untrustedString);
+} catch (ex) {
+    if (ex instanceof ValueError) {
+        console.log(ex.toString());
+    }
 }
 ```
 
-In Typescript:
 
-``` js
-// We cast to `Object`, rather than `any` to strictly type unknown data.
-const untrustedData: Object = JSON.parse('[{foo: "bar"}]');
-
-if (listOfNumberObjectType.isTypeOf(untrustedData)) {
-    // `isTypeOf()` is a type guard, so `untrustedData` is of the expected
-    // type within this block
-    const foo: string = untrustedData[0].foo;
-} else {
-    // Output a useful debugging message to the console.
-    console.warn(`Expected ${listOfNumberObjectType.getName()}`);
-}
-```
-
-See the [type-checking API](#type-checking-api) for more information.
-
-
-## Type-checking API
-
-### Type.isTypeOf()
-
-Checks that the value is of this `Type`.
-
-``` ts
-Type.isTypeOf<T>(value: Object): value is T;
-```
-
-Example:
-
-``` js
-import {stringType} from "@etianen/types";
-stringType.isTypeOf("foo");  // true
-stringType.isTypeOf(1);  // false
-```
-
-
-### Type.getName()
-
-Returns a descriptive name of this `Type`.
-
-``` ts
-Type.getName(): string;
-```
-
-Example:
-
-``` js
-import {stringType} from "@etianen/types";
-stringType.getName();  // "string"
-```
-
+## API
 
 ### fromJS()
 
-Casts the value to the given `Type`, or throws a `ValueError`.
+Casts `value` to `Type`, or throws a `ValueError`.
 
 ``` ts
 fromJS<T>(value: Object, type: Type<T>): T;
 ```
 
-Example:
-
-``` js
-import {fromJS, ValueError, stringType} from "@etianen/types";
-fromJS("foo", stringType);  // "foo"
-fromJS(1);  // throw ValueError("Expected string (received 1)");
-```
-
 
 ### fromJSON()
 
-Parses the JSON and casts to the given `Type`, or throws a `ValueError`.
+Parses `value` as JSON and casts to `Type`, or throws a `ValueError`.
 
 ``` ts
-fromJSON<T>(value: Object, type: Type<T>): T;
+fromJSON<T>(value: string, type: Type<T>): T;
 ```
 
-Example:
 
-``` js
-import {fromJSON, ValueError, stringType} from "@etianen/types";
-fromJSON('"foo"', stringType);  // "foo"
-fromJSON('1');  // throw ValueError("Expected string (received 1)");
-fromJSON('[');  // throw ValueError('Invalid JSON (received "[")');
+### Type
+
+A description of a runtime type.
+
+#### Type.isTypeOf()
+
+Checks that `value` is of this `Type`.
+
+``` ts
+Type.isTypeOf<T>(value: Object): value is T;
+```
+
+
+#### Type.getName()
+
+Returns the descriptive name of `Type`.
+
+``` ts
+Type.getName(): string;
+```
+
+
+### ValueError
+
+Error thrown when a value is of the incorrect type.
+
+
+#### ValueError.message
+
+A description of the problem.
+
+``` ts
+ValueError.message: string;
+```
+
+
+#### ValueError.stack
+
+A stack trace to the source of the problem.
+
+``` ts
+ValueError.message: string;
+```
+
+
+#### ValueError.value
+
+The value that caused the error.
+
+``` ts
+ValueError<T>.value: T;
+```
+
+
+#### ValueError.toString
+
+A description of the problem, including the value that caused the error.
+
+``` ts
+ValueError.toString(): string;
 ```
 
 
