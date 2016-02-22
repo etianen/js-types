@@ -60,6 +60,7 @@ fromJSON<T>(value: string, type: Type<T>): T;
 
 A description of a runtime type.
 
+
 #### Type.isTypeOf()
 
 Checks that `value` is of this `Type`.
@@ -75,6 +76,15 @@ Returns the descriptive name of `Type`.
 
 ``` ts
 Type.getName(): string;
+```
+
+
+#### Type.equals()
+
+Performs a value equality check on two values of this `Type`.
+
+``` ts
+Type.equals<T>(a: T, b: T): boolean;
 ```
 
 

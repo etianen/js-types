@@ -30,6 +30,8 @@ export interface Type<T> {
 
     isTypeOf(value: Object): value is T;
 
+    equals(a: T, b: T): boolean;
+
 }
 
 function getTypeName(type: Type<Object>): string {
@@ -69,6 +71,10 @@ class ReferenceOfType<T> implements Type<T> {
         return this.getType().isTypeOf(value);
     }
 
+    public equals(a: T, b: T): boolean {
+        return this.getType().equals(a, b);
+    }
+
 }
 
 export function referenceOf<T>(getType: () => Type<T>): Type<T> {
@@ -88,6 +94,15 @@ class IntersectionOfType<A, B> implements Type<A | B> {
 
     public isTypeOf(value: Object): value is A | B {
         return this.a.isTypeOf(value) || this.b.isTypeOf(value);
+    }
+
+    public equals(a: A | B, b: A | B): boolean {
+        if (this.a.isTypeOf(a) && this.a.isTypeOf(b)) {
+            return this.a.equals(a, b);
+        } else if (this.b.isTypeOf(a) && this.b.isTypeOf(b)) {
+            return this.b.equals(a, b);
+        }
+        return false;
     }
 
 }
@@ -111,6 +126,10 @@ class UnionOfType<A, B> implements Type<A & B> {
         return (this.a.isTypeOf(value) && this.b.isTypeOf(value)) as boolean;
     }
 
+    public equals(a: A & B, b: A & B): boolean {
+        return this.a.equals(a, b) && this.b.equals(a, b);
+    }
+
 }
 
 export function unionOf<A, B>(a: Type<A>, b: Type<B>): Type<A & B> {
@@ -130,6 +149,10 @@ class NullableOfType<T> implements Type<T> {
 
     public isTypeOf(value: Object): value is T {
         return value === null || this.type.isTypeOf(value);
+    }
+
+    public equals(a: T, b: T): boolean {
+        return this.type.equals(a, b);
     }
 
 }
@@ -153,6 +176,10 @@ class OptionalOfType<T> implements Type<T> {
         return value === undefined || this.type.isTypeOf(value);
     }
 
+    public equals(a: T, b: T): boolean {
+        return this.type.equals(a, b);
+    }
+
 }
 
 export function optionalOf<T>(type: Type<T>): Type<T> {
@@ -169,6 +196,9 @@ export const anyType: Type<Object> = {
     isTypeOf(value: Object): value is Object {
         return value !== null && value !== undefined;
     },
+    equals(a: Object, b: Object): boolean {
+        return a === b;
+    },
 };
 
 
@@ -184,6 +214,10 @@ class PrimitiveType<T> implements Type<T> {
 
     public isTypeOf(value: Object): value is T {
         return typeof value === this.name;
+    }
+
+    public equals(a: T, b: T): boolean {
+        return a === b;
     }
 
 }
@@ -207,6 +241,10 @@ class ArrayOfType<T> implements Type<Array<T>> {
 
     public isTypeOf(value: Object): value is Array<T> {
         return Array.isArray(value) && value.every(this.valueType.isTypeOf, this.valueType);
+    }
+
+    public equals(a: Array<T>, b: Array<T>): boolean {
+        return a.length === b.length && a.every((valueA: T, index: number) => this.valueType.equals(valueA, b[index]));
     }
 
 }
@@ -234,6 +272,10 @@ class ObjectOfType<T> implements Type<ObjectOf<T>> {
         return isPlainObject(value) && dict.every(value, this.valueType.isTypeOf, this.valueType);
     }
 
+    public equals(a: ObjectOf<T>, b: ObjectOf<T>): boolean {
+        return dict.count(a) === dict.count(b) && dict.every(a, (valueA: T, key: string) => this.valueType.equals(valueA, b[key]));
+    }
+
 }
 
 export function objectOf<T>(valueType: Type<T>): Type<ObjectOf<T>> {
@@ -253,6 +295,10 @@ class TupleOfType implements Type<Array<Object>> {
 
     public isTypeOf(value: Object): value is Array<Object> {
         return Array.isArray(value) && this.types.every((type: Type<Object>, index: number) => type.isTypeOf(value[index]));
+    }
+
+    public equals(a: Array<Object>, b: Array<Object>): boolean {
+        return this.types.every((type: Type<Object>, index: number) => type.equals(a[index], b[index]));
     }
 
 }
@@ -283,6 +329,10 @@ class ShapeOfType implements Type<ObjectOf<Object>> {
 
     public isTypeOf(value: Object): value is ObjectOf<Object> {
         return isPlainObject(value) && dict.every(this.types, (type: Type<Object>, key: string) => type.isTypeOf(value[key]));
+    }
+
+    public equals(a: ObjectOf<Object>, b: ObjectOf<Object>): boolean {
+        return dict.every(this.types, (type: Type<Object>, key: string) => type.equals(a[key], b[key]));
     }
 
 }

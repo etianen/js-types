@@ -39,33 +39,34 @@ describe("types", () => {
 
     describe("referenceOf", () => {
 
-        describe("nullableOf", () => {
+        const referenceOfStringType: Type<string> = referenceOf(() => stringType);
 
-            const referenceOfStringType: Type<string> = referenceOf(() => stringType);
+        it("has a descriptive name", () => {
+            expect(referenceOfStringType.getName()).to.equal("string");
+        });
 
-            it("has a descriptive name", () => {
-                expect(referenceOfStringType.getName()).to.equal("string");
-            });
+        it("passes values of wrapped type", () => {
+            expect(referenceOfStringType.isTypeOf("foo")).to.be.true;
+        });
 
-            it("passes values of wrapped type", () => {
-                expect(referenceOfStringType.isTypeOf("foo")).to.be.true;
-            });
+        it("fails values not of wrapped type", () => {
+            expect(referenceOfStringType.isTypeOf(1)).to.be.false;
+            expect(referenceOfStringType.isTypeOf(true)).to.be.false;
+            expect(referenceOfStringType.isTypeOf({})).to.be.false;
+            expect(referenceOfStringType.isTypeOf([])).to.be.false;
+        });
 
-            it("fails values not of wrapped type", () => {
-                expect(referenceOfStringType.isTypeOf(1)).to.be.false;
-                expect(referenceOfStringType.isTypeOf(true)).to.be.false;
-                expect(referenceOfStringType.isTypeOf({})).to.be.false;
-                expect(referenceOfStringType.isTypeOf([])).to.be.false;
-            });
+        it("fails nulls", () => {
+            expect(referenceOfStringType.isTypeOf(null)).to.be.false;
+        });
 
-            it("fails nulls", () => {
-                expect(referenceOfStringType.isTypeOf(null)).to.be.false;
-            });
+        it("fails undefined", () => {
+            expect(referenceOfStringType.isTypeOf(undefined)).to.be.false;
+        });
 
-            it("fails undefined", () => {
-                expect(referenceOfStringType.isTypeOf(undefined)).to.be.false;
-            });
-
+        it("checks value equality", () => {
+            expect(referenceOfStringType.equals("foo", "foo")).to.be.true;
+            expect(referenceOfStringType.equals("foo", "bar")).to.be.false;
         });
 
     });
@@ -91,6 +92,11 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(anyType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(anyType.equals("foo", "foo")).to.be.true;
+            expect(anyType.equals("foo", 1)).to.be.false;
         });
 
     });
@@ -119,6 +125,11 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(stringType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(stringType.equals("foo", "foo")).to.be.true;
+            expect(stringType.equals("foo", "bar")).to.be.false;
         });
 
     });
@@ -150,6 +161,11 @@ describe("types", () => {
             expect(numberType.isTypeOf(undefined)).to.be.false;
         });
 
+        it("checks value equality", () => {
+            expect(numberType.equals(1, 1)).to.be.true;
+            expect(numberType.equals(1, 2)).to.be.false;
+        });
+
     });
 
     describe("booleanType", () => {
@@ -176,6 +192,11 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(booleanType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(booleanType.equals(true, true)).to.be.true;
+            expect(booleanType.equals(true, false)).to.be.false;
         });
 
     });
@@ -205,6 +226,14 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(stringOrNumberType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(stringOrNumberType.equals("foo", "foo")).to.be.true;
+            expect(stringOrNumberType.equals("foo", "bar")).to.be.false;
+            expect(stringOrNumberType.equals(1, 1)).to.be.true;
+            expect(stringOrNumberType.equals(1, 2)).to.be.false;
+            expect(stringOrNumberType.equals("foo", 1)).to.be.false;
         });
 
     });
@@ -249,6 +278,12 @@ describe("types", () => {
             expect(stringNumberShapeType.isTypeOf(undefined)).to.be.false;
         });
 
+        it("checks value equality", () => {
+            expect(stringNumberShapeType.equals({foo: "foo", bar: 1}, {foo: "foo", bar: 1})).to.be.true;
+            expect(stringNumberShapeType.equals({foo: "foo", bar: 1}, {foo: "bar", bar: 1})).to.be.false;
+            expect(stringNumberShapeType.equals({foo: "foo", bar: 1}, {foo: "foo", bar: 2})).to.be.false;
+        });
+
     });
 
     describe("nullableOf", () => {
@@ -276,6 +311,13 @@ describe("types", () => {
 
         it("fails undefined", () => {
             expect(nullableStringType.isTypeOf(undefined)).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(nullableStringType.equals("foo", "foo")).to.be.true;
+            expect(nullableStringType.equals("foo", "bar")).to.be.false;
+            expect(nullableStringType.equals(null, null)).to.be.true;
+            expect(nullableStringType.equals("foo", null)).to.be.false;
         });
 
     });
@@ -306,6 +348,13 @@ describe("types", () => {
 
         it("passes undefined", () => {
             expect(undefinedStringType.isTypeOf(undefined)).to.be.true;
+        });
+
+        it("checks value equality", () => {
+            expect(undefinedStringType.equals("foo", "foo")).to.be.true;
+            expect(undefinedStringType.equals("foo", "bar")).to.be.false;
+            expect(undefinedStringType.equals(undefined, undefined)).to.be.true;
+            expect(undefinedStringType.equals("foo", undefined)).to.be.false;
         });
 
     });
@@ -345,6 +394,14 @@ describe("types", () => {
             expect(stringArrayType.isTypeOf([1])).to.be.false;
         });
 
+        it("checks value equality", () => {
+            expect(stringArrayType.equals(["foo"], ["foo"])).to.be.true;
+            expect(stringArrayType.equals(["foo"], ["bar"])).to.be.false;
+            expect(stringArrayType.equals([], [])).to.be.true;
+            expect(stringArrayType.equals(["foo"], [])).to.be.false;
+            expect(stringArrayType.equals(["foo"], ["foo", "bar"])).to.be.false;
+        });
+
     });
 
     describe("objectOf", () => {
@@ -380,6 +437,14 @@ describe("types", () => {
 
         it("fails objects of incorrect value type", () => {
             expect(stringObjectType.isTypeOf({foo: 1})).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(stringObjectType.equals({foo: "foo"}, {foo: "foo"})).to.be.true;
+            expect(stringObjectType.equals({foo: "foo"}, {foo: "bar"})).to.be.false;
+            expect(stringObjectType.equals({}, {})).to.be.true;
+            expect(stringObjectType.equals({foo: "foo"}, {})).to.be.false;
+            expect(stringObjectType.equals({foo: "foo"}, {foo: "foo", bar: "bar"})).to.be.false;
         });
 
     });
@@ -421,6 +486,12 @@ describe("types", () => {
 
         it("fails tuples missing value types", () => {
             expect(numberStringTupleType.isTypeOf([1])).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(numberStringTupleType.equals([1, "foo"], [1, "foo"])).to.be.true;
+            expect(numberStringTupleType.equals([1, "foo"], [1, "bar"])).to.be.false;
+            expect(numberStringTupleType.equals([1, "foo"], [2, "foo"])).to.be.false;
         });
 
     });
@@ -467,6 +538,12 @@ describe("types", () => {
 
         it("fails shapes missing value types", () => {
             expect(numberStringShapeType.isTypeOf({foo: 1})).to.be.false;
+        });
+
+        it("checks value equality", () => {
+            expect(numberStringShapeType.equals({foo: 1, bar: "bar"}, {foo: 1, bar: "bar"})).to.be.true;
+            expect(numberStringShapeType.equals({foo: 1, bar: "bar"}, {foo: 1, bar: "foo"})).to.be.false;
+            expect(numberStringShapeType.equals({foo: 1, bar: "bar"}, {foo: 2, bar: "bar"})).to.be.false;
         });
 
     });
