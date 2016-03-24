@@ -152,7 +152,7 @@ class NullableOfType<T> implements Type<T> {
     }
 
     public equals(a: T, b: T): boolean {
-        return this.type.equals(a, b);
+        return (a === null && b === null) || this.type.equals(a, b);
     }
 
 }
@@ -177,7 +177,7 @@ class OptionalOfType<T> implements Type<T> {
     }
 
     public equals(a: T, b: T): boolean {
-        return this.type.equals(a, b);
+        return (a === undefined && b === undefined) || this.type.equals(a, b);
     }
 
 }
