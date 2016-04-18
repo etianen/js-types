@@ -260,7 +260,7 @@ const bigTupleType: Type<BigTuple> = tupleOf([stringType, stringType, stringType
 A container `Type` representing a heterogenous object of other `Type`s.
 
 ``` ts
-shapeOf(types: ObjectOf<Type<Object>>): Type<ObjectOf<Object>>;
+shapeOf(types: ObjectOf<Type<Object>>): Type<Object>;
 ```
 
 **Typescript note:** Due to lack of support in the Typescript compiler, an explicit type cast is always required.

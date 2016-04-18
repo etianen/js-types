@@ -273,7 +273,7 @@ class ObjectOfType<T> implements Type<ObjectOf<T>> {
     }
 
     public equals(a: ObjectOf<T>, b: ObjectOf<T>): boolean {
-        return dict.count(a) === dict.count(b) && dict.every(a, (valueA: T, key: string) => this.valueType.equals(valueA, b[key]));
+        return dict.count(a) === dict.count(b) && dict.every(a, (valueA: T, key: string) => this.valueType.equals(valueA, dict.get(b, key)));
     }
 
 }
@@ -328,11 +328,11 @@ class ShapeOfType implements Type<ObjectOf<Object>> {
     }
 
     public isTypeOf(value: Object): value is ObjectOf<Object> {
-        return isPlainObject(value) && dict.every(this.types, (type: Type<Object>, key: string) => type.isTypeOf(value[key]));
+        return isPlainObject(value) && dict.every(this.types, (type: Type<Object>, key: string) => type.isTypeOf(dict.get(value, key)));
     }
 
     public equals(a: ObjectOf<Object>, b: ObjectOf<Object>): boolean {
-        return dict.every(this.types, (type: Type<Object>, key: string) => type.equals(a[key], b[key]));
+        return dict.every(this.types, (type: Type<Object>, key: string) => type.equals(dict.get(a, key), dict.get(b, key)));
     }
 
 }
