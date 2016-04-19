@@ -42,7 +42,7 @@ describe("types", () => {
         const referenceOfStringType: Type<string> = referenceOf(() => stringType);
 
         it("has a descriptive name", () => {
-            expect(referenceOfStringType.getName()).to.equal("string");
+            expect(referenceOfStringType.getName()).to.equal("…");
         });
 
         it("passes values of wrapped type", () => {

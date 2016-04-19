@@ -64,7 +64,7 @@ class ReferenceOfType<T> implements Type<T> {
     constructor(private getType: () => Type<T>) {}
 
     public getName(): string {
-        return this.getType().getName();
+        return "…";
     }
 
     public isTypeOf(value: Object): value is T {
